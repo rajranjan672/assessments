@@ -16,19 +16,31 @@ const Users = () => {
   const [searchQuery, setSearchQuery] = useState(""); // State for search query
   const [editingUser, setEditingUser] = useState(null);
 
+  // Function to open the modal for editing
   const openEditModal = (user) => {
-    setEditingUser(user); // Populate the state with the user data
+    setEditingUser(user); // Set the user to edit
     setOpenModel(true); // Open the modal
+    setData({
+      name: user.StudentName,
+      cohort: user.Cohort,
+      course: user.Courses,
+      datejoined: user.Datejoined,
+      lastLogin: user.Lastlogin,
+      status: user.Status
+    });
   };
 
   useEffect(() => {
     fetchStudents();
   }, []);
 
+  // Toggle modal visibility
   const openModelHandler = () => {
     setOpenModel(!openModel);
+    setEditingUser(null); // Reset editingUser when closing the modal
   };
 
+  // Fetch students data from the database
   const fetchStudents = async () => {
     const response = await supabase.from("Users").select("*");
 
@@ -41,45 +53,32 @@ const Users = () => {
     console.log(response.data);
   };
 
+  // Form submit handler
   const submitHandler = async (e) => {
     e.preventDefault();
-  
-    const { name, cohort, course, datejoined, lastLogin, status, ...rest } = data;
-  
+
+    const { name, cohort, course, datejoined, lastLogin, status } = data;
     const randomStatus = status || (Math.random() < 0.5 ? 'online' : 'offline');
-  
-    console.log('Data to submit:', {
-      studentName: name,
-      Cohort: cohort,
-      Courses: course,
-      Lastlogin: lastLogin,
-      Datejoined: datejoined,
-      Status: randomStatus,
-    });
-  
+
     let formattedDateJoined = "";
     let formattedLastLogin = "";
-  
+
     if (datejoined) {
       const date = new Date(datejoined);
       if (!isNaN(date)) {
         formattedDateJoined = date.toISOString().split('T')[0];
-      } else {
-        console.error("Invalid Date for Datejoined:", datejoined);
       }
     }
-  
+
     if (lastLogin) {
       const lastLoginDate = new Date(lastLogin);
       if (!isNaN(lastLoginDate)) {
         formattedLastLogin = lastLoginDate.toISOString().split('T')[0];
-      } else {
-        console.error("Invalid Date for Lastlogin:", lastLogin);
       }
     }
-  
+
     if (editingUser) {
-      // If editing, update the user
+      // Update existing user
       const { data: updatedData, error } = await supabase
         .from('Users')
         .update({
@@ -91,7 +90,7 @@ const Users = () => {
           Status: randomStatus,
         })
         .eq('id', editingUser.id);
-  
+
       if (error) {
         console.error('Error updating data:', error.message);
       } else {
@@ -100,7 +99,7 @@ const Users = () => {
         fetchStudents();
       }
     } else {
-      // If adding new user
+      // Insert new user
       const { data: insertedData, error } = await supabase
         .from('Users')
         .insert([{
@@ -111,7 +110,7 @@ const Users = () => {
           Datejoined: formattedDateJoined,
           Status: randomStatus,
         }]);
-  
+
       if (error) {
         console.error('Error inserting data:', error.message);
       } else {
@@ -120,7 +119,8 @@ const Users = () => {
         fetchStudents();
       }
     }
-  
+
+    // Reset form data after submit
     setData({
       name: "",
       cohort: "",
@@ -130,8 +130,8 @@ const Users = () => {
       status: "",
     });
   };
-  
 
+  // Delete user handler
   const deleteHandler = async (id) => {
     const confirmation = window.confirm("Are you sure you want to delete this student?");
     if (!confirmation) return;
@@ -154,12 +154,14 @@ const Users = () => {
     user.StudentName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Handle search input change
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
 
   return (
     <>
+      {/* Search Bar and Icons */}
       <div className="flex justify-between items-center h-full w-full">
         <div className="relative w-full max-w-xs ml-64">
           <input 
@@ -180,10 +182,12 @@ const Users = () => {
         </span>
       </div>
 
+      {/* Main Users Section */}
       <div className="flex justify-center items-center h-full w-full">
         <div className="bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 w-full max-w-4xl lg:ml-64 p-4">
           <h3 className="text-2xl font-semibold text-center mb-4">Users</h3>
 
+          {/* Add New Student Button */}
           <div className="text-right">
             <button 
               type="button" 
@@ -193,12 +197,13 @@ const Users = () => {
             </button>
           </div>
 
+          {/* Modal for Adding/Editing Student */}
           {openModel && (
             <div id="crud-modal" tabindex="-1" aria-hidden="true" className="flex justify-content-center z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
               <div className="relative p-4 w-full max-w-md max-h-full">
                 <div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
                   <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Create New Student</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{editingUser ? 'Edit Student' : 'Create New Student'}</h3>
                     <button 
                       type="button"
                       className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" 
@@ -212,6 +217,7 @@ const Users = () => {
                   </div>
                   <form className="p-4 md:p-5" onSubmit={submitHandler}>
                     <div className="grid gap-4 mb-4 grid-cols-2">
+                      {/* Student Name */}
                       <div className="col-span-2">
                         <label htmlFor="name" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Student Name</label>
                         <input 
@@ -221,11 +227,12 @@ const Users = () => {
                           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:border-primary-500"
                           placeholder="Student Name" 
                           required 
-                          value={editingUser ? editingUser.StudentName : data.name}
+                          value={data.name}
                           onChange={(e) => setData({...data, name: e.target.value})}
                         />
                       </div>
 
+                      {/* Cohort */}
                       <div className="col-span-2 sm:col-span-1">
                         <label htmlFor="cohort" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cohort</label>
                         <input 
@@ -235,22 +242,24 @@ const Users = () => {
                           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:border-primary-500"
                           placeholder="Cohort" 
                           required
-                          value={editingUser ? editingUser.Cohort : data.cohort}
+                          value={data.cohort}
                           onChange={(e) => setData({...data, cohort: e.target.value})}
                         />
                       </div>
 
+                      {/* Date Joined */}
                       <div className="col-span-2">
                         <label htmlFor="datejoined" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Date Joined</label>
                         <input 
                           type="date" 
                           id="datejoined" 
                           className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                          value={editingUser ? editingUser.Datejoined : data.datejoined}
+                          value={data.datejoined}
                           onChange={(e) => setData({...data, datejoined: e.target.value})}
                         />
                       </div>
 
+                      {/* Last Login */}
                       <div className="col-span-2 sm:col-span-1">
                         <label htmlFor="lastlogin" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Last Login</label>
                         <input 
@@ -258,17 +267,18 @@ const Users = () => {
                           name="lastlogin" 
                           id="lastlogin"
                           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                          value={editingUser ? editingUser.Lastlogin : data.lastLogin}
+                          value={data.lastLogin}
                           onChange={(e) => setData({...data, lastLogin: e.target.value})}
                         />
                       </div>
 
+                      {/* Course */}
                       <div className="col-span-2 sm:col-span-1">
                         <label htmlFor="course" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Course</label>
                         <select 
                           id="course"
                           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                          value={editingUser ? editingUser.Courses : data.course}
+                          value={data.course}
                           onChange={(e) => setData({...data, course: e.target.value})}
                         >
                           <option value=" ">Select course</option>
@@ -278,6 +288,7 @@ const Users = () => {
                         </select>
                       </div>
 
+                      {/* Status */}
                       <div className="col-span-2">
                         <label htmlFor="status" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Status</label>
                         <div className="flex items-center space-x-4">
@@ -286,7 +297,7 @@ const Users = () => {
                               type="radio" 
                               name="status" 
                               value="online"
-                              checked={editingUser ? editingUser.Status === 'online' : data.status === 'online'}
+                              checked={data.status === 'online'}
                               onChange={(e) => setData({...data, status: e.target.value})}
                               className="form-radio"
                             />
@@ -297,7 +308,7 @@ const Users = () => {
                               type="radio" 
                               name="status" 
                               value="offline"
-                              checked={editingUser ? editingUser.Status === 'offline' : data.status === 'offline'}
+                              checked={data.status === 'offline'}
                               onChange={(e) => setData({...data, status: e.target.value})}
                               className="form-radio"
                             />
@@ -313,12 +324,12 @@ const Users = () => {
                       {editingUser ? 'Update Student' : 'Add New Student'}
                     </button>
                   </form>
-
                 </div>
               </div>
             </div>
           )}
 
+          {/* User Table */}
           <div className="relative overflow-x-auto">
             <table className="min-w-full text-sm text-left text-gray-500 dark:text-gray-400">
               <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -342,7 +353,7 @@ const Users = () => {
                     <td className="px-6 py-4">{item.Lastlogin}</td>
                     <td className="px-6 py-4 text-transform: uppercase">{item.Status}</td>
                     <td className="px-6 py-4 flex">
-                      <PencilIcon className='cursor-pointer' color='#4287f5'  />
+                      <PencilIcon className='cursor-pointer' color='#4287f5' onClick={() => openEditModal(item)} />
                       <TrashIcon className='cursor-pointer' color='#f72a6b' onClick={() => deleteHandler(item.id)} />
                     </td>
                   </tr>
