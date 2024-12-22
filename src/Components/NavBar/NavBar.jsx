@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import vector from "../../assets/Vector.png"
-import { Cog6ToothIcon, AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline';
+import { Cog6ToothIcon, AdjustmentsHorizontalIcon, QuestionMarkCircleIcon, ChartPieIcon, LanguageIcon, HomeIcon } from '@heroicons/react/24/outline';
+import { BookOpenIcon } from '@heroicons/react/16/solid';
 
 
 const NavBar = ({ toggleNavbar }) => {
@@ -48,24 +49,32 @@ const NavBar = ({ toggleNavbar }) => {
           {/* Navbar items */}
           <div className={`mt-8 space-y-4 ${isOpen ? 'block' : 'hidden'} lg:block`}>
             <a href="#" className="flex justify-center justify-space-between px-4 py-2 rounded-md hover:bg-gray-700">
-            <AdjustmentsHorizontalIcon className="h-6 w-6 text-gray-700" />
+            {/* <AdjustmentsHorizontalIcon className="h-6 w-6 text-gray-700" /> */}
+             
+            <HomeIcon className='w-6 h-6' />
               Dashboard
             </a>
-            <a href="#" className="flex justify-center px-4 py-2 rounded-md hover:bg-gray-700">
-            <Cog6ToothIcon className="h-6 w-6 text-gray-700" />
+            <a href="#" className="flex justify-center justify-space-between px-4 py-2 rounded-md hover:bg-gray-700">
+            <BookOpenIcon className='w-6 h-6'/>
               Students
             </a>
-            <a href="#" className="flex justify-center px-4 py-2 rounded-md hover:bg-gray-700">
+            <a href="#" className="flex justify-center justify-space-between px-4 py-2 rounded-md hover:bg-gray-700">
+              <LanguageIcon className='w-6 h-6'/>
               Chapter
             </a>
-            <a href="#" className="flex justify-center px-4 py-2 rounded-md hover:bg-gray-700">
+            <a href="#" className="flex justify-center py-2 rounded-md hover:bg-gray-700">
+            <QuestionMarkCircleIcon className='h-6 w-6' />
             
               Help
             </a>
-            <a href="#" className="flex justify-center px-4 py-2 rounded-md hover:bg-gray-700">
+            <a href="#" className="flex justify-center justify-space-between px-4 py-2 rounded-md hover:bg-gray-700">
+              
+              <ChartPieIcon className='w-6 h-6'/>
               Report
             </a>
-            <a href="#" className="flex justify-center px-4 py-2 rounded-md hover:bg-gray-700">
+            <a href="#" className="flex justify-center justify-space-between px-4 py-2 rounded-md hover:bg-gray-700">
+            <Cog6ToothIcon className="h-6 w-6 text-gray-700" />
+              
               Settings
             </a>
           </div>
